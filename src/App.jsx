@@ -1,122 +1,107 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { mockPosts } from './data/mockPosts';
+import { Onboarding } from './components/Onboarding';
+import { Disclaimer } from './components/Disclaimer';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [step, setStep] = useState('onboarding'); // 'onboarding' ou 'feed'
+  const [weights, setWeights] = useState({});
+  const [posts, setPosts] = useState(mockPosts);
+  const [interactionCount, setInteractionCount] = useState(0);
+
+  // Inicializa os pesos com base na escolha do usuário
+  const handleStart = (selectedInterests) => {
+    const initialWeights = {};
+    // Atribui peso alto inicial para os temas escolhidos
+    mockPosts.forEach(post => {
+      initialWeights[post.category] = selectedInterests.includes(post.category) ? 5 : 1;
+    });
+    setWeights(initialWeights);
+    setStep('feed');
+  };
+
+  // Função que simula o Algoritmo de Recomendação adaptativo
+  const handleLike = (postId, category) => {
+    // 1. Aumenta o peso da categoria curtida
+    const updatedWeights = {
+      ...weights,
+      [category]: (weights[category] || 1) + 4
+    };
+    setWeights(updatedWeights);
+
+    // 2. Reordena o feed dinamicamente com base nos novos pesos (Simula a bolha)
+    const sortedPosts = [...posts].sort((a, b) => {
+      const weightA = updatedWeights[a.category] || 1;
+      const weightB = updatedWeights[b.category] || 1;
+      return weightB - weightA + (Math.random() * 0.5 - 0.25); // Adiciona leve aleatoriedade natural
+    });
+
+    setPosts(sortedPosts);
+    setInteractionCount(prev => prev + 1);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-slate-100 flex flex-col items-center">
+      <div className="w-full max-w-md bg-white min-h-screen shadow-xl flex flex-col">
+        <Disclaimer />
+        
+        {step === 'onboarding' ? (
+          <Onboarding onStart={handleStart} />
+        ) : (
+          <div className="flex flex-col flex-1 pb-16">
+            {/* Header da "Rede Social" */}
+            <header className="px-4 py-3 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+              <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                MetaFeed AI 🔮
+              </span>
+              <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">
+                Interações: {interactionCount}
+              </span>
+            </header>
 
-      <div className="ticks"></div>
+            {/* Aviso Dinâmico da Bolha de Filtro */}
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 m-3 text-xs text-blue-800 rounded-r-lg">
+              <strong>Efeito Bolha Ativo:</strong> O algoritmo aprende com seus cliques. Quanto mais você curte um tema, menos você verá os outros!
+            </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            {/* Lista do Feed */}
+            <div className="flex flex-col gap-4 p-3">
+              {posts.map((post) => (
+                <div key={post.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                  {/* Perfil do autor */}
+                  <div className="flex items-center gap-3 p-3">
+                    <img src={post.avatar} alt={post.author} className="w-9 h-9 rounded-full object-cover border" />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-800">@{post.author}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">{post.category}</span>
+                    </div>
+                  </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+                  {/* Mídia (Imagem/Reel simulado) */}
+                  <img src={post.mediaUrl} alt="Post content" className="w-full h-64 object-cover" />
+
+                  {/* Ações e Legenda */}
+                  <div className="p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <button 
+                        onClick={() => handleLike(post.id, post.category)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-pink-600 bg-pink-50 px-3 py-1.5 rounded-full hover:bg-pink-100 transition-colors cursor-pointer"
+                      >
+                        ❤️ Curtir ({post.likes})
+                      </button>
+                      <span className="text-[10px] text-slate-400">Peso no Algoritmo: {weights[post.category] || 1}</span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      <strong className="text-slate-900 mr-1">@{post.author}</strong>
+                      {post.caption}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
-
-export default App
